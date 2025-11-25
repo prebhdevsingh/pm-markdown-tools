@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Excel to Markdown Converter</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+
+        .instructions h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        #input {
+            min-height: 200px;
+        }
+
+        #output {
+            min-height: 250px;
+            background-color: #f8f9fa;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .options input[type="checkbox"] {
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Excel to Markdown Converter</h1>
+
+        <div class="instructions">
+            <h2>Instructions</h2>
+            <ol>
+                <li>Select and copy a table from Excel (Ctrl+C or Cmd+C)</li>
+                <li>Paste the table into the input area below (Ctrl+V or Cmd+V)</li>
+                <li>Click "Convert to Markdown" button</li>
+                <li>Copy the generated Markdown from the output area</li>
+            </ol>
+        </div>
+
+        <div class="section">
+            <label for="input">Input (Paste Excel table here)</label>
+            <textarea id="input" placeholder="Paste your Excel table here..."></textarea>
+
+            <div class="options">
+                <label>
+                    <input type="checkbox" id="alignLeft" checked>
+                    Left-align columns
+                </label>
+                <label>
+                    <input type="checkbox" id="trimSpaces" checked>
+                    Trim extra spaces
+                </label>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="convertToMarkdown()">Convert to Markdown</button>
+                <button class="btn-secondary" onclick="clearAll()">Clear All</button>
+            </div>
+        </div>
+
+        <div class="section">
+            <label for="output">Output (Markdown table)</label>
+            <textarea id="output" readonly placeholder="Markdown output will appear here..."></textarea>
+
+            <div class="button-group">
+                <button class="btn-success" onclick="copyToClipboard()">Copy to Clipboard</button>
+            </div>
+
+            <div id="status" class="status"></div>
+        </div>
+    </div>
+
+    <script>
+        function convertToMarkdown() {
+            const input = document.getElementById('input').value;
+            const output = document.getElementById('output');
+            const alignLeft = document.getElementById('alignLeft').checked;
+            const trimSpaces = document.getElementById('trimSpaces').checked;
+
+            if (!input.trim()) {
+                showStatus('Please paste some data first', 'error');
+                return;
+            }
+
+            try {
+                // Split by newlines to get rows
+                const rows = input.split('\n').filter(row => row.trim());
+
+                if (rows.length === 0) {
+                    showStatus('No data found', 'error');
+                    return;
+                }
+
+                // Parse rows (Excel copies as tab-separated values)
+                const parsedRows = rows.map(row => {
+                    // Split by tabs
+                    let cells = row.split('\t');
+
+                    if (trimSpaces) {
+                        cells = cells.map(cell => cell.trim());
+                    }
+
+                    return cells;
+                });
+
+                // Get the maximum number of columns
+                const maxCols = Math.max(...parsedRows.map(row => row.length));
+
+                // Normalize all rows to have the same number of columns
+                parsedRows.forEach(row => {
+                    while (row.length < maxCols) {
+                        row.push('');
+                    }
+                });
+
+                // Calculate column widths for better formatting
+                const colWidths = Array(maxCols).fill(0);
+                parsedRows.forEach(row => {
+                    row.forEach((cell, i) => {
+                        colWidths[i] = Math.max(colWidths[i], cell.length);
+                    });
+                });
+
+                // Build markdown table
+                let markdown = '';
+
+                // Header row
+                markdown += '| ' + parsedRows[0].map((cell, i) =>
+                    cell.padEnd(colWidths[i], ' ')
+                ).join(' | ') + ' |\n';
+
+                // Separator row
+                const alignment = alignLeft ? ':---' : '---';
+                markdown += '| ' + colWidths.map(width =>
+                    alignment.padEnd(width, '-')
+                ).join(' | ') + ' |\n';
+
+                // Data rows
+                for (let i = 1; i < parsedRows.length; i++) {
+                    markdown += '| ' + parsedRows[i].map((cell, j) =>
+                        cell.padEnd(colWidths[j], ' ')
+                    ).join(' | ') + ' |\n';
+                }
+
+                output.value = markdown;
+                showStatus('Conversion successful!', 'success');
+            } catch (error) {
+                showStatus('Error converting table: ' + error.message, 'error');
+            }
+        }
+
+        function copyToClipboard() {
+            const output = document.getElementById('output');
+
+            if (!output.value.trim()) {
+                showStatus('Nothing to copy', 'error');
+                return;
+            }
+
+            output.select();
+            document.execCommand('copy');
+
+            // Deselect
+            window.getSelection().removeAllRanges();
+
+            showStatus('Copied to clipboard!', 'success');
+        }
+
+        function clearAll() {
+            document.getElementById('input').value = '';
+            document.getElementById('output').value = '';
+            hideStatus();
+        }
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = 'status ' + type;
+            status.style.display = 'block';
+
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                hideStatus();
+            }, 3000);
+        }
+
+        function hideStatus() {
+            const status = document.getElementById('status');
+            status.style.display = 'none';
+        }
+
+        // Auto-convert on paste (optional convenience feature)
+        document.getElementById('input').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                convertToMarkdown();
+            }, 100);
+        });
+
+        // Keyboard shortcut: Ctrl/Cmd + Enter to convert
+        document.getElementById('input').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                convertToMarkdown();
+            }
+        });
+    </script>
+</body>
+</html>
