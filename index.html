@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Markdown Tools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+
+        /* Header Navigation */
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .github-link {
+            color: white;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        .github-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .github-icon {
+            width: 20px;
+            height: 20px;
+        }
+
+        .tool-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tool-selector label {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .tool-selector select {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            background-color: white;
+            color: #333;
+            cursor: pointer;
+            min-width: 200px;
+            transition: box-shadow 0.2s;
+        }
+
+        .tool-selector select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.3);
+        }
+
+        /* Main Content */
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Tool Container */
+        .tool-container {
+            display: none;
+        }
+
+        .tool-container.active {
+            display: block;
+        }
+
+        /* Shared Styles */
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .instructions {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 30px;
+            border-left: 4px solid #007bff;
+        }
+
+        .instructions h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #495057;
+        }
+
+        .instructions ol, .instructions ul {
+            margin-left: 20px;
+            color: #666;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #495057;
+            font-size: 14px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+
+        .input-area {
+            min-height: 200px;
+        }
+
+        .output-area {
+            min-height: 250px;
+            background-color: #f8f9fa;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #545b62;
+        }
+
+        .btn-success {
+            background-color: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #218838;
+        }
+
+        .status {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+            display: none;
+        }
+
+        .status.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .options {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+            font-size: 14px;
+            flex-wrap: wrap;
+        }
+
+        .options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .options input[type="checkbox"] {
+            cursor: pointer;
+        }
+
+        /* Welcome Screen */
+        .welcome {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome h1 {
+            font-size: 32px;
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .welcome p {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .welcome .cta {
+            font-size: 14px;
+            color: #007bff;
+            font-weight: 500;
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-nav {
+                width: 100%;
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .tool-selector {
+                width: 100%;
+            }
+
+            .tool-selector select {
+                flex: 1;
+            }
+
+            .github-link {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header Navigation -->
+    <div class="header">
+        <div class="header-content">
+            <div class="header-title">PM Markdown Tools</div>
+            <div class="header-nav">
+                <a href="https://github.com/prebhdevsingh/pm-markdown-tools" target="_blank" class="github-link" title="View on GitHub">
+                    <svg class="github-icon" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    GitHub
+                </a>
+                <div class="tool-selector">
+                    <label for="toolSelect">Select Tool:</label>
+                    <select id="toolSelect" onchange="switchTool(this.value)">
+                        <option value="">-- Choose a tool --</option>
+                        <option value="excel-to-markdown">Excel to Markdown Converter</option>
+                        <!-- Add more tools here as you create them -->
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="tool-container active">
+            <div class="welcome">
+                <h1>Welcome to PM Markdown Tools</h1>
+                <p>
+                    A collection of offline-ready web tools for Product Managers and technical writers
+                    working with Markdown. All tools work completely offline with no external dependencies.
+                </p>
+                <p class="cta">Select a tool from the dropdown above to get started.</p>
+            </div>
+        </div>
+
+        <!-- Excel to Markdown Converter -->
+        <div id="excel-to-markdown" class="tool-container">
+            <h1>Excel to Markdown Converter</h1>
+
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Select and copy a table from Excel (Ctrl+C or Cmd+C)</li>
+                    <li>Paste the table into the input area below (Ctrl+V or Cmd+V)</li>
+                    <li>Click "Convert to Markdown" button or press Ctrl/Cmd + Enter</li>
+                    <li>Copy the generated Markdown from the output area</li>
+                </ol>
+            </div>
+
+            <div class="section">
+                <label for="excel-input">Input (Paste Excel table here)</label>
+                <textarea id="excel-input" class="input-area" placeholder="Paste your Excel table here..."></textarea>
+
+                <div class="options">
+                    <label>
+                        <input type="checkbox" id="excel-alignLeft" checked>
+                        Left-align columns
+                    </label>
+                    <label>
+                        <input type="checkbox" id="excel-trimSpaces" checked>
+                        Trim extra spaces
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="excelToMarkdown.convert()">Convert to Markdown</button>
+                    <button class="btn-secondary" onclick="excelToMarkdown.clear()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <label for="excel-output">Output (Markdown table)</label>
+                <textarea id="excel-output" class="output-area" readonly placeholder="Markdown output will appear here..."></textarea>
+
+                <div class="button-group">
+                    <button class="btn-success" onclick="excelToMarkdown.copy()">Copy to Clipboard</button>
+                </div>
+
+                <div id="excel-status" class="status"></div>
+            </div>
+        </div>
+
+        <!-- Add more tool containers here as you create them -->
+    </div>
+
+    <script>
+        // Tool Manager
+        function switchTool(toolId) {
+            // Hide all tools
+            const allTools = document.querySelectorAll('.tool-container');
+            allTools.forEach(tool => {
+                tool.classList.remove('active');
+            });
+
+            // Show selected tool or welcome screen
+            if (toolId) {
+                const selectedTool = document.getElementById(toolId);
+                if (selectedTool) {
+                    selectedTool.classList.add('active');
+                    // Update URL hash for bookmarking
+                    window.location.hash = toolId;
+                }
+            } else {
+                document.getElementById('welcome-screen').classList.add('active');
+                window.location.hash = '';
+            }
+        }
+
+        // Load tool from URL hash on page load
+        window.addEventListener('DOMContentLoaded', function() {
+            const hash = window.location.hash.substring(1);
+            if (hash) {
+                const select = document.getElementById('toolSelect');
+                select.value = hash;
+                switchTool(hash);
+            }
+        });
+
+        // Excel to Markdown Tool
+        const excelToMarkdown = {
+            convert: function() {
+                const input = document.getElementById('excel-input').value;
+                const output = document.getElementById('excel-output');
+                const alignLeft = document.getElementById('excel-alignLeft').checked;
+                const trimSpaces = document.getElementById('excel-trimSpaces').checked;
+
+                if (!input.trim()) {
+                    this.showStatus('Please paste some data first', 'error');
+                    return;
+                }
+
+                try {
+                    // Split by newlines to get rows
+                    const rows = input.split('\n').filter(row => row.trim());
+
+                    if (rows.length === 0) {
+                        this.showStatus('No data found', 'error');
+                        return;
+                    }
+
+                    // Parse rows (Excel copies as tab-separated values)
+                    const parsedRows = rows.map(row => {
+                        let cells = row.split('\t');
+                        if (trimSpaces) {
+                            cells = cells.map(cell => cell.trim());
+                        }
+                        return cells;
+                    });
+
+                    // Get the maximum number of columns
+                    const maxCols = Math.max(...parsedRows.map(row => row.length));
+
+                    // Normalize all rows to have the same number of columns
+                    parsedRows.forEach(row => {
+                        while (row.length < maxCols) {
+                            row.push('');
+                        }
+                    });
+
+                    // Calculate column widths for better formatting
+                    const colWidths = Array(maxCols).fill(0);
+                    parsedRows.forEach(row => {
+                        row.forEach((cell, i) => {
+                            colWidths[i] = Math.max(colWidths[i], cell.length);
+                        });
+                    });
+
+                    // Build markdown table
+                    let markdown = '';
+
+                    // Header row
+                    markdown += '| ' + parsedRows[0].map((cell, i) =>
+                        cell.padEnd(colWidths[i], ' ')
+                    ).join(' | ') + ' |\n';
+
+                    // Separator row
+                    const alignment = alignLeft ? ':---' : '---';
+                    markdown += '| ' + colWidths.map(width =>
+                        alignment.padEnd(width, '-')
+                    ).join(' | ') + ' |\n';
+
+                    // Data rows
+                    for (let i = 1; i < parsedRows.length; i++) {
+                        markdown += '| ' + parsedRows[i].map((cell, j) =>
+                            cell.padEnd(colWidths[j], ' ')
+                        ).join(' | ') + ' |\n';
+                    }
+
+                    output.value = markdown;
+                    this.showStatus('Conversion successful!', 'success');
+                } catch (error) {
+                    this.showStatus('Error converting table: ' + error.message, 'error');
+                }
+            },
+
+            copy: function() {
+                const output = document.getElementById('excel-output');
+
+                if (!output.value.trim()) {
+                    this.showStatus('Nothing to copy', 'error');
+                    return;
+                }
+
+                output.select();
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+
+                this.showStatus('Copied to clipboard!', 'success');
+            },
+
+            clear: function() {
+                document.getElementById('excel-input').value = '';
+                document.getElementById('excel-output').value = '';
+                this.hideStatus();
+            },
+
+            showStatus: function(message, type) {
+                const status = document.getElementById('excel-status');
+                status.textContent = message;
+                status.className = 'status ' + type;
+                status.style.display = 'block';
+
+                setTimeout(() => {
+                    this.hideStatus();
+                }, 3000);
+            },
+
+            hideStatus: function() {
+                const status = document.getElementById('excel-status');
+                status.style.display = 'none';
+            }
+        };
+
+        // Auto-convert on paste
+        document.getElementById('excel-input').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                excelToMarkdown.convert();
+            }, 100);
+        });
+
+        // Keyboard shortcut: Ctrl/Cmd + Enter to convert
+        document.getElementById('excel-input').addEventListener('keydown', function(e) {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                excelToMarkdown.convert();
+            }
+        });
+
+        // Add more tool implementations here as needed
+    </script>
+</body>
+</html>

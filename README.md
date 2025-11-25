@@ -1,12 +1,14 @@
 # PM Markdown Tools
 
-A collection of offline-ready web tools for working with Markdown. All tools are standalone HTML files that work completely offline with no external dependencies.
+A collection of offline-ready web tools for working with Markdown. All tools work completely offline with no external dependencies.
+
+## Quick Start
+
+Open `index.html` in your browser to access all tools from a unified interface with an easy-to-use dropdown navigation.
 
 ## Available Tools
 
 ### Excel to Markdown Converter
-
-**File:** `excel-to-markdown.html`
 
 Convert Excel tables to Markdown format instantly.
 
@@ -20,13 +22,6 @@ Convert Excel tables to Markdown format instantly.
 - Auto-converts on paste for convenience
 - Clean, minimalist interface
 - Works completely offline
-
-**How to Use:**
-1. Open `excel-to-markdown.html` in any web browser
-2. Copy a table from Excel (Ctrl+C or Cmd+C)
-3. Paste into the input area (Ctrl+V or Cmd+V)
-4. The tool automatically converts to Markdown
-5. Copy the result from the output area
 
 **Perfect For:**
 - Creating documentation tables
@@ -50,11 +45,25 @@ Navigate to the tool you need and download the HTML file directly.
 
 ## Usage
 
-All tools are self-contained HTML files. Simply:
-1. Download or clone this repository
-2. Open any `.html` file in your web browser
+### Unified Interface (Recommended)
+1. Open `index.html` in your web browser
+2. Select a tool from the dropdown menu at the top
 3. Start using the tool immediately
 4. No internet connection required
+
+### Standalone Tools
+Each tool is also available as a standalone HTML file:
+- `excel-to-markdown.html` - Excel to Markdown Converter
+- Individual tools can be opened directly without the index
+
+### Adding New Tools
+
+The codebase is designed for easy expansion:
+1. Add your tool's HTML/CSS/JS to the `index.html` file
+2. Create a new `<div id="your-tool-name" class="tool-container">` section
+3. Add your tool to the dropdown: `<option value="your-tool-name">Tool Name</option>`
+4. Implement the tool's JavaScript using the pattern established for `excelToMarkdown`
+5. Update this README with your tool's documentation
 
 ## Browser Compatibility
 
