@@ -342,6 +342,7 @@
                     <select id="toolSelect" onchange="switchTool(this.value)">
                         <option value="">-- Choose a tool --</option>
                         <option value="excel-to-markdown">Excel to Markdown Converter</option>
+                        <option value="markdown-to-text">Markdown to Plain/Rich Text</option>
                         <!-- Add more tools here as you create them -->
                     </select>
                 </div>
@@ -407,6 +408,59 @@
                 </div>
 
                 <div id="excel-status" class="status"></div>
+            </div>
+        </div>
+
+        <!-- Markdown to Plain/Rich Text Converter -->
+        <div id="markdown-to-text" class="tool-container">
+            <h1>Markdown to Plain/Rich Text Converter</h1>
+
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Paste your Markdown text into the input area below</li>
+                    <li>Choose between Plain Text or Rich Text (HTML) output</li>
+                    <li>Click "Convert" button or the conversion happens automatically</li>
+                    <li>Copy the converted text from the output area</li>
+                </ol>
+            </div>
+
+            <div class="section">
+                <label for="md-input">Input (Paste Markdown here)</label>
+                <textarea id="md-input" class="input-area" placeholder="Paste your Markdown here..."></textarea>
+
+                <div class="options">
+                    <label>
+                        <input type="radio" name="md-output-format" value="plain" checked>
+                        Plain Text (strips all formatting)
+                    </label>
+                    <label>
+                        <input type="radio" name="md-output-format" value="rich">
+                        Rich Text (HTML with formatting)
+                    </label>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="markdownToText.convert()">Convert</button>
+                    <button class="btn-secondary" onclick="markdownToText.clear()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <label for="md-output">Output</label>
+                <textarea id="md-output" class="output-area" readonly placeholder="Converted text will appear here..."></textarea>
+
+                <div class="button-group">
+                    <button class="btn-success" onclick="markdownToText.copy()">Copy to Clipboard</button>
+                </div>
+
+                <div id="md-status" class="status"></div>
+            </div>
+
+            <!-- Rich Text Preview -->
+            <div class="section" id="md-preview-section" style="display: none;">
+                <label>Rich Text Preview</label>
+                <div id="md-preview" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background-color: white; min-height: 100px;"></div>
             </div>
         </div>
 
@@ -574,6 +628,206 @@
                 e.preventDefault();
                 excelToMarkdown.convert();
             }
+        });
+
+        // Markdown to Plain/Rich Text Tool
+        const markdownToText = {
+            convert: function() {
+                const input = document.getElementById('md-input').value;
+                const output = document.getElementById('md-output');
+                const format = document.querySelector('input[name="md-output-format"]:checked').value;
+                const previewSection = document.getElementById('md-preview-section');
+                const preview = document.getElementById('md-preview');
+
+                if (!input.trim()) {
+                    this.showStatus('Please paste some Markdown first', 'error');
+                    return;
+                }
+
+                try {
+                    if (format === 'plain') {
+                        // Convert to plain text
+                        const plainText = this.markdownToPlain(input);
+                        output.value = plainText;
+                        previewSection.style.display = 'none';
+                        this.showStatus('Converted to plain text!', 'success');
+                    } else {
+                        // Convert to rich text (HTML)
+                        const html = this.markdownToHtml(input);
+                        output.value = html;
+                        preview.innerHTML = html;
+                        previewSection.style.display = 'block';
+                        this.showStatus('Converted to rich text!', 'success');
+                    }
+                } catch (error) {
+                    this.showStatus('Error converting: ' + error.message, 'error');
+                }
+            },
+
+            markdownToPlain: function(markdown) {
+                let text = markdown;
+
+                // Remove code blocks
+                text = text.replace(/```[\s\S]*?```/g, '');
+                text = text.replace(/`[^`]+`/g, '');
+
+                // Remove images
+                text = text.replace(/!\[([^\]]*)\]\([^\)]+\)/g, '$1');
+
+                // Remove links but keep text
+                text = text.replace(/\[([^\]]+)\]\([^\)]+\)/g, '$1');
+
+                // Remove headers
+                text = text.replace(/^#{1,6}\s+/gm, '');
+
+                // Remove bold/italic
+                text = text.replace(/\*\*\*([^\*]+)\*\*\*/g, '$1');
+                text = text.replace(/\*\*([^\*]+)\*\*/g, '$1');
+                text = text.replace(/\*([^\*]+)\*/g, '$1');
+                text = text.replace(/___([^_]+)___/g, '$1');
+                text = text.replace(/__([^_]+)__/g, '$1');
+                text = text.replace(/_([^_]+)_/g, '$1');
+
+                // Remove strikethrough
+                text = text.replace(/~~([^~]+)~~/g, '$1');
+
+                // Remove horizontal rules
+                text = text.replace(/^[\-\*_]{3,}\s*$/gm, '');
+
+                // Remove blockquotes
+                text = text.replace(/^>\s+/gm, '');
+
+                // Remove list markers
+                text = text.replace(/^[\*\-\+]\s+/gm, '');
+                text = text.replace(/^\d+\.\s+/gm, '');
+
+                // Clean up extra whitespace
+                text = text.replace(/\n{3,}/g, '\n\n');
+                text = text.trim();
+
+                return text;
+            },
+
+            markdownToHtml: function(markdown) {
+                let html = markdown;
+
+                // Escape HTML entities first
+                html = html.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+                // Code blocks (must be before inline code)
+                html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+
+                // Inline code
+                html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+                // Headers
+                html = html.replace(/^######\s+(.+)$/gm, '<h6>$1</h6>');
+                html = html.replace(/^#####\s+(.+)$/gm, '<h5>$1</h5>');
+                html = html.replace(/^####\s+(.+)$/gm, '<h4>$1</h4>');
+                html = html.replace(/^###\s+(.+)$/gm, '<h3>$1</h3>');
+                html = html.replace(/^##\s+(.+)$/gm, '<h2>$1</h2>');
+                html = html.replace(/^#\s+(.+)$/gm, '<h1>$1</h1>');
+
+                // Bold and italic (must be in this order)
+                html = html.replace(/\*\*\*([^\*]+)\*\*\*/g, '<strong><em>$1</em></strong>');
+                html = html.replace(/___([^_]+)___/g, '<strong><em>$1</em></strong>');
+                html = html.replace(/\*\*([^\*]+)\*\*/g, '<strong>$1</strong>');
+                html = html.replace(/__([^_]+)__/g, '<strong>$1</strong>');
+                html = html.replace(/\*([^\*]+)\*/g, '<em>$1</em>');
+                html = html.replace(/_([^_]+)_/g, '<em>$1</em>');
+
+                // Strikethrough
+                html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
+
+                // Images
+                html = html.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<img src="$2" alt="$1">');
+
+                // Links
+                html = html.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<a href="$2">$1</a>');
+
+                // Horizontal rules
+                html = html.replace(/^[\-\*_]{3,}\s*$/gm, '<hr>');
+
+                // Blockquotes
+                html = html.replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>');
+
+                // Unordered lists
+                html = html.replace(/^[\*\-\+]\s+(.+)$/gm, '<li>$1</li>');
+                html = html.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+
+                // Ordered lists
+                html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+                // This is a simplified approach - you might need more logic for nested lists
+
+                // Line breaks
+                html = html.replace(/\n\n/g, '</p><p>');
+                html = html.replace(/\n/g, '<br>');
+
+                // Wrap in paragraphs
+                html = '<p>' + html + '</p>';
+
+                // Clean up empty paragraphs
+                html = html.replace(/<p><\/p>/g, '');
+                html = html.replace(/<p>\s*<\/p>/g, '');
+
+                return html;
+            },
+
+            copy: function() {
+                const output = document.getElementById('md-output');
+
+                if (!output.value.trim()) {
+                    this.showStatus('Nothing to copy', 'error');
+                    return;
+                }
+
+                output.select();
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+
+                this.showStatus('Copied to clipboard!', 'success');
+            },
+
+            clear: function() {
+                document.getElementById('md-input').value = '';
+                document.getElementById('md-output').value = '';
+                document.getElementById('md-preview').innerHTML = '';
+                document.getElementById('md-preview-section').style.display = 'none';
+                this.hideStatus();
+            },
+
+            showStatus: function(message, type) {
+                const status = document.getElementById('md-status');
+                status.textContent = message;
+                status.className = 'status ' + type;
+                status.style.display = 'block';
+
+                setTimeout(() => {
+                    this.hideStatus();
+                }, 3000);
+            },
+
+            hideStatus: function() {
+                const status = document.getElementById('md-status');
+                status.style.display = 'none';
+            }
+        };
+
+        // Auto-convert on input for Markdown to Text
+        document.getElementById('md-input').addEventListener('input', function() {
+            if (this.value.trim()) {
+                markdownToText.convert();
+            }
+        });
+
+        // Auto-convert when format changes
+        document.querySelectorAll('input[name="md-output-format"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const input = document.getElementById('md-input');
+                if (input.value.trim()) {
+                    markdownToText.convert();
+                }
+            });
         });
 
         // Add more tool implementations here as needed

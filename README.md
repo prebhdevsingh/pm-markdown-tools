@@ -32,6 +32,26 @@ Convert Excel tables to Markdown format instantly.
 - Blog posts and articles in Markdown
 - Obsidian notes and wikis
 
+### Markdown to Plain/Rich Text Converter
+
+Convert Markdown to plain text or rich text (HTML) format.
+
+**Features:**
+- Two output modes: Plain Text (strips all formatting) or Rich Text (HTML)
+- Real-time conversion as you type
+- Visual preview for rich text output
+- Supports headers, bold, italic, links, images, lists, blockquotes, and more
+- One-click copy to clipboard
+- Clean, easy-to-use interface
+- Works completely offline
+
+**Perfect For:**
+- Extracting plain text from Markdown documents
+- Converting Markdown to HTML for emails or rich text editors
+- Previewing how Markdown will render
+- Cleaning up formatted text
+- Content migration between platforms
+
 ## Installation
 
 No installation required! Simply download the HTML files and open them in your browser.
