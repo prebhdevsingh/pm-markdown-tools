@@ -2,6 +2,8 @@
 
 A collection of offline-ready web tools for working with Markdown. All tools work completely offline with no external dependencies.
 
+**Live Demo:** [https://prebhdevsingh.github.io/pm-markdown-tools/](https://prebhdevsingh.github.io/pm-markdown-tools/)
+
 ## Quick Start
 
 Open `index.html` in your browser to access all tools from a unified interface with an easy-to-use dropdown navigation.
