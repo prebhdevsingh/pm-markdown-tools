@@ -343,6 +343,7 @@
                         <option value="">-- Choose a tool --</option>
                         <option value="excel-to-markdown">Excel to Markdown Converter</option>
                         <option value="markdown-to-text">Markdown to Plain/Rich Text</option>
+                        <option value="markdown-to-slack">Markdown to Slack Converter</option>
                         <!-- Add more tools here as you create them -->
                     </select>
                 </div>
@@ -461,6 +462,42 @@
             <div class="section" id="md-preview-section" style="display: none;">
                 <label>Rich Text Preview</label>
                 <div id="md-preview" style="border: 1px solid #ddd; padding: 15px; border-radius: 4px; background-color: white; min-height: 100px;"></div>
+            </div>
+        </div>
+
+        <!-- Markdown to Slack Converter -->
+        <div id="markdown-to-slack" class="tool-container">
+            <h1>Markdown to Slack Converter</h1>
+
+            <div class="instructions">
+                <h2>Instructions</h2>
+                <ol>
+                    <li>Paste your Markdown text into the input area below</li>
+                    <li>The converter will automatically transform it to Slack mrkdwn format</li>
+                    <li>Copy the output and paste directly into Slack</li>
+                    <li>Supports bold, italic, strikethrough, links, code blocks, lists, and more</li>
+                </ol>
+            </div>
+
+            <div class="section">
+                <label for="slack-input">Input (Paste Markdown here)</label>
+                <textarea id="slack-input" class="input-area" placeholder="Paste your Markdown here..."></textarea>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="markdownToSlack.convert()">Convert to Slack</button>
+                    <button class="btn-secondary" onclick="markdownToSlack.clear()">Clear All</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <label for="slack-output">Output (Slack mrkdwn format)</label>
+                <textarea id="slack-output" class="output-area" readonly placeholder="Slack-formatted text will appear here..."></textarea>
+
+                <div class="button-group">
+                    <button class="btn-success" onclick="markdownToSlack.copy()">Copy to Clipboard</button>
+                </div>
+
+                <div id="slack-status" class="status"></div>
             </div>
         </div>
 
@@ -828,6 +865,117 @@
                     markdownToText.convert();
                 }
             });
+        });
+
+        // Markdown to Slack Tool
+        const markdownToSlack = {
+            convert: function() {
+                const input = document.getElementById('slack-input').value;
+                const output = document.getElementById('slack-output');
+
+                if (!input.trim()) {
+                    this.showStatus('Please paste some Markdown first', 'error');
+                    return;
+                }
+
+                try {
+                    const slackText = this.markdownToSlackFormat(input);
+                    output.value = slackText;
+                    this.showStatus('Converted to Slack format!', 'success');
+                } catch (error) {
+                    this.showStatus('Error converting: ' + error.message, 'error');
+                }
+            },
+
+            markdownToSlackFormat: function(markdown) {
+                let slack = markdown;
+
+                // Code blocks: ```code``` -> ```code```
+                // Slack uses the same triple backtick syntax for code blocks
+
+                // Inline code: `code` -> `code`
+                // Slack uses the same backtick syntax for inline code
+
+                // Bold: **text** or __text__ -> *text*
+                slack = slack.replace(/\*\*\*(.+?)\*\*\*/g, '*_$1_*'); // bold+italic
+                slack = slack.replace(/___(.+?)___/g, '*_$1_*'); // bold+italic
+                slack = slack.replace(/\*\*(.+?)\*\*/g, '*$1*');
+                slack = slack.replace(/__(.+?)__/g, '*$1*');
+
+                // Italic: *text* or _text_ -> _text_
+                slack = slack.replace(/\*([^*]+)\*/g, '_$1_');
+                slack = slack.replace(/(?<!_)_([^_]+)_(?!_)/g, '_$1_');
+
+                // Strikethrough: ~~text~~ -> ~text~
+                slack = slack.replace(/~~(.+?)~~/g, '~$1~');
+
+                // Links: [text](url) -> <url|text>
+                slack = slack.replace(/\[([^\]]+)\]\(([^\)]+)\)/g, '<$2|$1>');
+
+                // Images: ![alt](url) -> <url|alt> (Slack doesn't support inline images in mrkdwn, but shows link)
+                slack = slack.replace(/!\[([^\]]*)\]\(([^\)]+)\)/g, '<$2|$1>');
+
+                // Headers: # Header -> *Header*
+                slack = slack.replace(/^#{1,6}\s+(.+)$/gm, '*$1*');
+
+                // Blockquotes: > text -> > text
+                // Slack uses the same > syntax for blockquotes
+
+                // Unordered lists: - item or * item -> • item
+                slack = slack.replace(/^[\*\-\+]\s+/gm, '• ');
+
+                // Ordered lists: 1. item -> 1. item
+                // Slack preserves numbered lists
+
+                // Horizontal rules: --- or *** -> ───
+                slack = slack.replace(/^[\-\*_]{3,}\s*$/gm, '───────────');
+
+                return slack;
+            },
+
+            copy: function() {
+                const output = document.getElementById('slack-output');
+
+                if (!output.value.trim()) {
+                    this.showStatus('Nothing to copy', 'error');
+                    return;
+                }
+
+                output.select();
+                document.execCommand('copy');
+                window.getSelection().removeAllRanges();
+
+                this.showStatus('Copied to clipboard!', 'success');
+            },
+
+            clear: function() {
+                document.getElementById('slack-input').value = '';
+                document.getElementById('slack-output').value = '';
+                this.hideStatus();
+            },
+
+            showStatus: function(message, type) {
+                const status = document.getElementById('slack-status');
+                status.textContent = message;
+                status.className = 'status ' + type;
+                status.style.display = 'block';
+
+                setTimeout(() => {
+                    this.hideStatus();
+                }, 3000);
+            },
+
+            hideStatus: function() {
+                const status = document.getElementById('slack-status');
+                status.style.display = 'none';
+            }
+        };
+
+        // Auto-convert on input for Markdown to Slack
+        document.getElementById('slack-input').addEventListener('input', function() {
+            if (this.value.trim()) {
+                markdownToSlack.convert();
+            }
         });
 
         // Add more tool implementations here as needed

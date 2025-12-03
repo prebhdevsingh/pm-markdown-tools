@@ -52,6 +52,26 @@ Convert Markdown to plain text or rich text (HTML) format.
 - Cleaning up formatted text
 - Content migration between platforms
 
+### Markdown to Slack Converter
+
+Convert standard Markdown to Slack's mrkdwn format instantly.
+
+**Features:**
+- Real-time conversion as you type
+- Converts bold, italic, strikethrough, links, code blocks, and more
+- Proper formatting for Slack messages, posts, and comments
+- Transforms headers to bold text
+- Converts list markers to bullet points
+- One-click copy to clipboard
+- Works completely offline
+
+**Perfect For:**
+- Preparing documentation for Slack channels
+- Converting README files for Slack posts
+- Formatting release notes and announcements
+- Creating well-formatted Slack messages from Markdown notes
+- Sharing technical documentation in Slack
+
 ## Installation
 
 No installation required! Simply download the HTML files and open them in your browser.
